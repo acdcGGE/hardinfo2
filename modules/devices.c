@@ -219,14 +219,26 @@ static gchar *processor_year(GSList * processors)
 	return g_strdup(_("Unknown"));
     }
     JsonObject *results = json_node_get_object(root);
-    if ( results && json_object_has_member(results, cpuname) ) {
-        const gchar *ret=json_object_get_string_member(results, cpuname);
-        if(strlen(ret)==6){
-	    gchar r[8]={ret[0],ret[1],ret[2],ret[3],'-',ret[4],ret[5],0};
-	    g_object_unref(parser);
-	    cache_processor_year=g_strdup(r);
-	    g_free(cpuname);
-	    return g_strdup(r);
+    if (results) {
+        const gchar *ret = NULL;
+        if (json_object_has_member(results, cpuname)) {
+            ret = json_object_get_string_member(results, cpuname);
+        } else {
+            /* Non-x86 ports decorate the model name, e.g. LoongArch yields
+             * "Loongarch64 Processor (Loongson-3A5000/NoDT)" which is cut to
+             * "Loongarch64 Processor" above and never matches releaseyear.json.
+             * Retry with the bare model name (also helps other decorated ports). */
+            gchar *bare = processor_name_default(processors);
+            if (json_object_has_member(results, bare))
+                ret = json_object_get_string_member(results, bare);
+            g_free(bare);
+        }
+        if (ret && strlen(ret) == 6) {
+            gchar r[8] = {ret[0],ret[1],ret[2],ret[3],'-',ret[4],ret[5],0};
+            g_object_unref(parser);
+            cache_processor_year = g_strdup(r);
+            g_free(cpuname);
+            return g_strdup(r);
         }
     }
     if(parser) g_object_unref(parser);
@@ -768,7 +780,7 @@ gchar *get_motherboard(void)
 {
     gchar *board_vendor;
 
-#if defined(ARCH_x86) || defined(ARCH_x86_64)
+#if defined(ARCH_x86) || defined(ARCH_x86_64) || defined(ARCH_loongarch64)
     gchar *board_name, *board_version;
     gchar *board_part = NULL, *product_part = NULL;
     const gchar *tmp;

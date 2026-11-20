@@ -78,6 +78,7 @@ static int ignore_placeholder_strings(gchar **pstr) {
 
 #define DMI_IGNORE(m) if (strcasecmp(m, *pstr) == 0) { g_free(chk); g_free(*pstr); *pstr = NULL; return 1; }
     DMI_IGNORE("To be filled by O.E.M.");
+    DMI_IGNORE("To Be Filled By O.E.M"); /* Loongson firmware: no trailing dot */
     DMI_IGNORE("Default String");
     DMI_IGNORE("System Product Name");
     DMI_IGNORE("System Manufacturer");

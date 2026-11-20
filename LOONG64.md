@@ -24,22 +24,34 @@ building on real hardware (Loongson 3A5000 / Deepin 25).
    making the `.deb` uninstallable. Removed them from `DEB_REQ`/`RPM_REQ` for
    LoongArch (mirrors the existing riscv handling).
 
-4. **Reproducible build script** — `tools/build-loong64.sh` builds the full
-   variant (GTK3 + libsoup3 + Qt5 OpenGL benchmark + Vulkan benchmark) and
-   produces an installable `.deb`. Supports a no-root local-dependency mode.
+4. **Reproducible build script** — `tools/build-loong64.sh` checks build
+   dependencies, prints the exact `apt install` command for anything missing,
+   then (once they are installed system-wide) builds the full variant
+   (GTK3 + libsoup3 + Qt5 OpenGL benchmark + Vulkan benchmark) and produces an
+   installable `.deb`. It never downloads or unpacks packages itself.
+
+5. **Processor "Released" year** — `processor_year()` looked up only the
+   decorated name (`Loongarch64 Processor (Loongson-3A5000/NoDT)` →
+   `Loongarch64 Processor`), which is not a key in `releaseyear.json`, so the
+   GUI showed "Released: Unknown". Now falls back to the bare model name
+   (`Loongson-3A5000`), which is present → `2021-Q2`.
+
+6. **Motherboard summary** — `get_motherboard()` gated DMI reads behind
+   `ARCH_x86`/`ARCH_x86_64`, so on LoongArch the summary fell through to device
+   tree `/model` (absent here) and showed "Unknown". Enabled the DMI path for
+   `ARCH_loongarch64` (`dmi_get_str()` reads `/sys/class/dmi/id/`, no root
+   needed). Also taught the placeholder filter the no-trailing-dot variant
+   `To Be Filled By O.E.M` emitted by Loongson firmware.
 
 ## Build
 
-System dependencies installed (the normal case):
+Run the script; it will tell you exactly what to install if anything is missing:
 
 ```sh
 ./tools/build-loong64.sh
-```
-
-No root access (downloads `-dev` debs into a local prefix):
-
-```sh
-DSH_LOCAL_DEPS=1 ./tools/build-loong64.sh
+# e.g. sudo apt install glslang-tools qtbase5-dev-tools qt5-qmake qt5-qmake-bin \
+#        libjson-glib-dev qtbase5-dev libqt5opengl5-dev libdecor-0-dev
+# then re-run
 ```
 
 Output: `build-loong64/hardinfo2_*-loong64.deb` with
@@ -56,7 +68,9 @@ sudo apt install ./build-loong64/hardinfo2_*-loong64.deb
 - `hardinfo2 -v` → `Release version: Yes (2.3.2) (ARCH_loongarch64)`,
   `OpenGL: QT5`, `Vulkan: X11`.
 - `hardinfo2 -r -s -f text` → Processor section shows
-  `Model: Loongson-3A5000`, `Revision: 0x11`, correct frequency/features.
+  `Model: Loongson-3A5000`, `Revision: 0x11`, correct frequency/features;
+  computer summary shows `Released 2021-Q2` and the motherboard line resolves
+  to `Loongson-3A5000-7A1000-1w-ML5A-V1.21`.
 - Benchmarks (`FPU FFT`, OpenGL `qgears2`, Vulkan `vkgears`) run natively.
 
 ## Known limitations

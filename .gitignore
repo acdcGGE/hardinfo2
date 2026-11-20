@@ -8,6 +8,8 @@ config.h
 arch/this
 build/
 build-*/
+dist/
+*.pkg.tar.zst
 .loong64-deps/
 test/build-*
 po/*.old

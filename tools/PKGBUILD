@@ -1,9 +1,9 @@
 # Maintainer: Mark Wagie <mark dot wagie at proton dot me>
 pkgname=hardinfo2
-pkgver=$(cat CMakeLists.txt |grep HARDINFO2_VERSION\ |grep -o -P '(?<=").*(?=")')
+pkgver=$(sed -nE 's/.*set\(HARDINFO2_VERSION "([^"]+)".*/\1/p' CMakeLists.txt | head -1)
 pkgrel=1
 pkgdesc="System Information and Benchmark for Linux Systems."
-arch=('x86_64' 'aarch64' 'riscv64')
+arch=('x86_64' 'aarch64' 'riscv64' 'loong64')
 url="https://www.hardinfo2.org"
 license=('GPL-2.0-or-later AND GPL-3.0-or-later AND LGPL-2.1-or-later')
 depends=(
@@ -19,9 +19,20 @@ depends=(
   'vulkan-tools'
   'xdg-utils'
   'xorg-xrandr'
-  'fwupd'
   'qt5-base'
 )
+# loong64 has no sysbench/fwupd packages yet; other arches keep them.
+if [[ "${CARCH:-}" == "loong64" ]]; then
+  _filtered=()
+  for _dep in "${depends[@]}"; do
+    case "$_dep" in
+      sysbench|fwupd) ;;
+      *) _filtered+=("$_dep") ;;
+    esac
+  done
+  depends=("${_filtered[@]}")
+  unset _filtered _dep
+fi
 makedepends=(
   'cmake'
   'qt5-base'

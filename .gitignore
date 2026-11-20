@@ -8,6 +8,7 @@ config.h
 arch/this
 build/
 build-*/
+.loong64-deps/
 test/build-*
 po/*.old
 po/*.mo

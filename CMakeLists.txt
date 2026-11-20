@@ -167,6 +167,11 @@ else()
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
     set(PACKAGE_ARCHITECTURE "_amd64")
   endif()
+  # Debian/Ubuntu use "loong64" as the dpkg architecture name, while
+  # CMake/uname report "loongarch64". Map it so the .deb is installable.
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "(loongarch64|loong64)")
+    set(PACKAGE_ARCHITECTURE "_loong64")
+  endif()
 endif()
 set(PACKAGE_DISTRO ${HARDINFO2_VERSION}-${distro}-${disversion}${CPACK_SYSTEM_NAME})
 SET(CPACK_PACKAGE_VERSION ${HARDINFO2_VERSION})
@@ -469,6 +474,12 @@ endif()
 if(${HARDINFO2_ARCH} MATCHES "riscv")
     SET(DEB_REQ "dmidecode, udisks2, mesa-utils, lm-sensors, xdg-utils, iperf3, fwupd, x11-xserver-utils, vulkan-tools, gawk") #miss sysbench
     SET(RPM_REQ "dmidecode, udisks2, glx-utils, lm_sensors, xdg-utils, iperf3, fwupd, xrandr, vulkan-tools, gawk") #miss sysbench
+endif()
+
+#LoongArch (Debian/Deepin loong64): sysbench and fwupd are not packaged yet
+if(${HARDINFO2_ARCH} MATCHES "loongarch64")
+    SET(DEB_REQ "dmidecode, udisks2, mesa-utils, lm-sensors, xdg-utils, iperf3, x11-xserver-utils, vulkan-tools, gawk") #no sysbench/fwupd on loong64
+    SET(RPM_REQ "dmidecode, udisks2, glx-utils, lm_sensors, xdg-utils, iperf3, xrandr, vulkan-tools, gawk") #no sysbench/fwupd
 endif()
 
 #E2K - was probably code error in proxy libsoup3 handling

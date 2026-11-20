@@ -43,7 +43,7 @@ processor_scan(void)
             get_str("system type", processor->vendor_id);
             get_str("CPU Family", processor->family);
             get_str("Model Name", processor->model_name);
-            get_int("CPU Revision", processor->revision);
+            get_str("CPU Revision", processor->revision);
             get_float("CPU MHz", processor->cpu_mhz);
             get_float("BogoMIPS", processor->bogomips);
             get_str("Features", processor->features);
@@ -85,7 +85,7 @@ processor_get_info(GSList *processors)
                         "%s=%s\n"      /* vendor */
                         "%s=%s\n"      /* family */
                         "%s=%s\n"      /* name */
-                        "%s=%d\n"      /* revision */
+                        "%s=%s\n"      /* revision */
                         "%s=%.2f %s\n" /* frequency */
                         "%s=%.2f\n"    /* bogoMIPS */
                         "%s=%s\n"      /* features */

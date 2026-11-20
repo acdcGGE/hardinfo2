@@ -22,7 +22,7 @@ struct _Processor {
     gchar *vendor_id;
     gchar *family;
     gchar *model_name;
-    gint   revision;
+    gchar *revision;
     gfloat cpu_mhz, bogomips;
     gchar *features;
 };

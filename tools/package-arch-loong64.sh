@@ -36,6 +36,11 @@ log() { printf '[arch-loong64] %s\n' "$*" >&2; }
 log "installing into staging root"
 DESTDIR="$STAGE" cmake --install "$BUILD_DIR" >/dev/null
 
+# Normalize directory permissions to Arch's standard 755. A build tree created
+# under a group-writable umask (002) would otherwise bake 775 dirs into the
+# package, which makes pacman warn "directory permissions differ" on install.
+find "$STAGE" -type d -exec chmod 755 {} +
+
 # Verify the binary expects Arch's /usr/lib layout, not Debian multiarch.
 if strings "$STAGE/usr/bin/hardinfo2" | grep -q 'lib/loongarch64-linux-gnu/hardinfo2'; then
   echo "error: binary was built with Debian multiarch LIBPREFIX; rebuild with -DCMAKE_INSTALL_LIBDIR=lib" >&2
@@ -61,7 +66,7 @@ size = $SIZE_KIB
 arch = $ARCH
 license = GPL-2.0-or-later AND LGPL-2.1-or-later
 provides = hardinfo
-conflicts = hardinfo
+conflict = hardinfo
 depend = gtk3
 depend = libsoup3
 depend = json-glib
